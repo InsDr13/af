@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowDown, ChevronRight } from 'lucide-react';
-import { personalData } from '../../data/portfolioData';
+import { usePersonalInfo } from '../../hooks/usePersonalInfo';
+import { useContentSections } from '../../hooks/useContentSections';
 
 const Hero: React.FC = () => {
+  const { data: personalInfo, loading: personalLoading } = usePersonalInfo();
+  const { data: sections, loading: sectionsLoading } = useContentSections();
   const [typedText, setTypedText] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const titles = ["Full Stack Developer", "UI/UX Designer", "Problem Solver", "Creative Thinker"];
   
   useEffect(() => {
-    if (currentIndex >= titles.length) {
+    if (!personalInfo?.roles) return;
+    
+    if (currentIndex >= personalInfo.roles.length) {
       setTimeout(() => {
         setCurrentIndex(0);
         setTypedText('');
@@ -16,7 +20,7 @@ const Hero: React.FC = () => {
       return;
     }
     
-    const targetText = titles[currentIndex];
+    const targetText = personalInfo.roles[currentIndex];
     
     if (typedText === targetText) {
       setTimeout(() => {
@@ -31,20 +35,29 @@ const Hero: React.FC = () => {
     }, 100);
     
     return () => clearTimeout(timeout);
-  }, [typedText, currentIndex]);
+  }, [typedText, currentIndex, personalInfo?.roles]);
+
+  if (personalLoading || sectionsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <section id="home" className="min-h-screen pt-20 flex items-center relative overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Background decorations */}
       <div className="absolute top-20 right-0 w-64 h-64 rounded-full bg-blue-200 dark:bg-blue-900/20 filter blur-3xl opacity-30"></div>
       <div className="absolute bottom-20 left-10 w-72 h-72 rounded-full bg-purple-200 dark:bg-purple-900/20 filter blur-3xl opacity-30"></div>
       
       <div className="container mx-auto px-4 md:px-6 py-12 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
-            <p className="text-blue-500 dark:text-blue-400 font-medium mb-2">Hello, I'm</p>
+            <p className="text-blue-500 dark:text-blue-400 font-medium mb-2">
+              {sections.hero?.subtitle || 'Hello, I\'m'}
+            </p>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4">
-              {personalData.name}
+              {personalInfo?.name}
             </h1>
             
             <div className="h-8 mb-6">
@@ -55,7 +68,7 @@ const Hero: React.FC = () => {
             </div>
             
             <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-lg">
-              {personalData.bio}
+              {personalInfo?.subtitle}
             </p>
             
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -78,8 +91,8 @@ const Hero: React.FC = () => {
           <div className="order-1 md:order-2 flex justify-center md:justify-end animate-fade-in" style={{animationDelay: '0.6s'}}>
             <div className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-xl">
               <img 
-                src="https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
-                alt={personalData.name}
+                src={personalInfo?.avatar_url}
+                alt={personalInfo?.name}
                 className="w-full h-full object-cover"
               />
             </div>
